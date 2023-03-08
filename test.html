@@ -1,0 +1,298 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+  
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            featchAll();
+            $("#insertEmp").click(function () {
+                insertEmp();
+            })
+
+            $("#updateEmp").click(function () {
+                updateEmp();
+            })
+
+            $("#deleteEmp").click(function () {
+                deleteEmp();
+            })
+
+            $("#clearAll").click(function () {
+                clearAll();
+            })
+
+
+        })
+
+
+        function insertEmp()
+        {   
+            var id = $("#txtid").val();
+            var name = $("#txtname").val();
+            var joiningdate = $("#txtdatetime").val();
+            var address = $("#txtaddress").val();
+            var knowlang = "";
+            var city = $("#city").val();
+
+            if (document.getElementById('txtmale').checked) {
+                gender = "Male";
+            } else if (document.getElementById('txtfemale').checked) {
+                gender = "Female";
+            }
+
+            if (document.getElementById('marathi').checked) {
+                knowlang = "Marathi";
+            }
+            if (document.getElementById('hindi').checked) {
+                knowlang = "Hindi";
+            }
+           
+            if (document.getElementById('english').checked) {
+                knowlang = "English";
+            }
+
+
+            var st = { "id": id, "name": name, "Gender": gender, "adress": address, "city": city, "JoiningDate": joiningdate, "KnownLanguage": knowlang };
+            $.ajax({
+
+                url: '/Employee/insertEmp',
+                method: 'post',
+                data: JSON.stringify(st),
+                contentType: 'application/json',
+                success:function(resp)
+                {
+                    alert(resp);
+                    featchAll();
+                    clearAll();
+                }
+
+            })
+        }
+
+        function updateEmp()
+        {
+            
+            var id = $("#txtid").val();
+            var name = $("#txtname").val();
+            var joiningdate = $("#txtdatetime").val();
+            var address = $("#txtaddress").val();
+            var knowlang = "";
+            var city = $("#city").val();
+
+            if (document.getElementById('txtmale').checked) {
+                gender = "Male";
+            } else if (document.getElementById('txtfemale').checked) {
+                gender = "Female";
+            }
+
+            if (document.getElementById('marathi').checked) {
+                knowlang =knowlang + "Marathi"+", ";
+            }
+            if (document.getElementById('hindi').checked) {
+                knowlang = knowlang + "Hindi"+", ";
+            }
+
+            if (document.getElementById('english').checked) {
+                knowlang = knowlang + "English";
+            }
+
+
+            var st = { "id": id, "name": name, "Gender": gender, "adress": address, "city": city, "JoiningDate": joiningdate, "KnownLanguage": knowlang };
+            $.ajax({
+                url: '/Employee/updateEmp',
+                method: 'post',
+                data: JSON.stringify(st),
+                contentType: 'application/json',
+                success: function (resp) {
+                    alert(resp);
+                    featchAll();
+                    clearAll();
+                }
+
+            })
+        }
+
+        function deleteEmp(id)
+        {
+            $.ajax({
+                url: '/Employee/deleteEmp/' + id,
+                method: 'get',
+                contentType: 'application/json',
+                success: function (resp) {
+                    featchAll();
+                    alert(resp);
+                    
+                }
+            })
+        }
+
+        function clearAll()
+        {
+            var id = $("#txtid").val(" ");
+            var name = $("#txtname").val(" ");
+            var joiningdate = $("#txtdatetime").val(" ");
+            var address = $("#txtaddress").val(" ");
+            var knowlang = "";
+            var city = $("#city").val(" ");
+            document.getElementById('marathi').checked = false;
+            document.getElementById('hindi').checked = false;
+            document.getElementById('english').checked = false;
+        }
+
+
+        function featchAll()
+        {
+            $.ajax({
+                url: '/Employee/GetAll',
+                method:'get',
+                contentType: 'application/json',
+                success: function (resp) {
+                    console.log(resp);
+                    $("#MyData").empty();
+                    $.each(resp, function (i, d) {  
+                        $("#MyData").append("<tr><td>" + d.id + "</td><td>" + d.name + "</td><td>" + d.Gender + "</td><td>" + d.Adress + "</td><td>" + d.City + "</td><td>" + ToJavaScriptDate(d.JoiningDate) + "</td><td>" + d.KnownLanguage + "</td><td>" + "<input type='button' value='Delete' onclick='deleteEmp(" + d.id + ")'/>" + "</td><td>" + "<input type='button' value='Edit' onclick='editEmp(" + d.id + ")'/>" + "</td></tr>");
+                    })
+                }
+            })
+        }
+       
+
+        function ToJavaScriptDate(value) {
+            var pattern = /Date\(([^)]+)\)/;
+            var results = pattern.exec(value);
+            var dt = new Date(parseFloat(results[1]));
+            return (dt.getDate() + "/" + (dt.getMonth() + 1) + "/" + dt.getFullYear());
+        }
+
+        function editEmp(id)
+            {
+            clearAll();
+            $.ajax({
+                url: '/Employee/GetById/' + id,
+                method: 'get',
+                contentType: 'application/json',
+                success: function (resp) {
+                    console.log(resp);
+                    $.each(resp, function (i, d) {
+                        var id = $("#txtid").val(resp.id);
+                        var name = $("#txtname").val(resp.name);
+                        var address = $("#txtaddress").val(resp.Adress);
+                        var city = $("#city").val(resp.City);
+
+                        if (resp.KnownLanguage == 'Marathi') {
+                            document.getElementById('marathi').checked = true;
+                        }else if (resp.KnownLanguage == 'Hindi') {
+                            document.getElementById('hindi').checked = true;
+                        }else if (resp.KnownLanguage == 'English') {
+                            document.getElementById('english').checked = true;
+                        } else if (resp.KnownLanguage == 'Marathi, Hindi, English, ') {
+                            document.getElementById('marathi').checked = true;
+                            document.getElementById('hindi').checked = true;
+                            document.getElementById('english').checked = true;
+                        }
+                        
+
+                        if (resp.Gender = 'Male')
+                        {
+                            document.getElementById('txtmale').checked = true;
+                        } else if (resp.Gender = 'Female')
+                        {
+                            document.getElementById('txtfemale').checked = true;
+                        }
+
+                        var joiningdate = $("#txtdatetime").val(ToJavaScriptDate(resp.JoiningDate));
+                        
+                       })
+                }
+
+            })
+
+            }
+    </script>
+
+
+
+
+</head>
+<body>
+    <div>
+        <form>
+            <table>
+                <tr>
+                    <td><label></label></td>
+                    <td><input type="hidden" id="txtid" /></td>
+                </tr>
+                <tr>
+                    <td><label>Name :</label></td>
+                    <td><input type="text" id="txtname" /></td>
+                </tr>
+                <tr>
+                    <td><label>Gender</label></td>
+                    <td>
+                        <input type="radio" name="g" id="txtmale" />Male<br />
+                        <input type="radio" name="g" id="txtfemale" />Female
+                    </td>
+                </tr>
+                <tr>
+                    <td><label>Address :</label></td>
+                    <td><textarea id="txtaddress" rows="4" cols="6"> </textarea></td>
+                </tr>
+                <tr>
+                    <td><label>city :</label></td>
+                    <td>
+                        <select id="city">
+                            <option value="Pune">Pune</option>
+                            <option value="Mumbai">Mumbai</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label>Joining Date :</label></td>
+                    <td><input type="date" id="txtdatetime" /></td>
+                </tr>
+                <tr>
+                    <td><label>Known Languages :</label></td>
+                    <td>
+                        <input type="checkbox" id="marathi" value="Marathi" />Marathi<br />
+                        <input type="checkbox" id="hindi" value="Hindi" />Hindi<br />
+                        <input type="checkbox" id="english" value="English" />English<br />
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="button" id="insertEmp" value="Submit" /></td>
+                    <td><input type="button" id="updateEmp" value="Update" /></td>
+                    <td><input type="button" id="clearAll" value="Clear" /></td>
+                </tr>
+            </table>
+        </form>
+        <br />
+        <br />
+        <div>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>Gender</th>
+                        <th>Address
+                        <th>City</th>
+                        <th>Joining Date</th>
+                        <th>Known Language</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="MyData"></tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
